@@ -19,8 +19,7 @@ const FILTER_LISTS = [
 let rawRules = [];
 let regexRules = [];
 
-// Load all lists automatically
-export async function loadPrivacyFilters() {
+window.loadPrivacyFilters = async function() {
   const fetches = FILTER_LISTS.map(list => fetch(list.url));
   const responses = await Promise.all(fetches);
 
@@ -38,9 +37,8 @@ export async function loadPrivacyFilters() {
 
   compileRules();
   console.log(`Loaded ${rawRules.length} privacy rules.`);
-}
+};
 
-// Compile rules into regex (basic approximation)
 function compileRules() {
   regexRules = rawRules.map(rule => {
     let r = rule
@@ -56,10 +54,9 @@ function compileRules() {
   }).filter(r => r);
 }
 
-// Check if URL matches any privacy filter
-export function matchesPrivacyFilters(url) {
+window.matchesPrivacyFilters = function(url) {
   for (const re of regexRules) {
     if (re.test(url)) return true;
   }
   return false;
-}
+};
