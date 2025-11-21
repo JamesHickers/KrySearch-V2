@@ -8,10 +8,6 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
 
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       background: #0a0a0a;
@@ -22,29 +18,24 @@
       height: 100vh;
       overflow: hidden;
     }
-
     header {
       background: #111;
       padding: 8px 16px;
       display: flex;
       align-items: center;
+      gap: 10px;
       border-bottom: 1px solid #00ffe0;
       user-select: none;
     }
-
-    /* Hidden class (you forgot this) */
-    .hidden {
-      display: none !important;
-    }
-
     #kry-search-bar {
       display: flex;
       align-items: center;
       gap: 8px;
+      max-width: 200px;
+      position: relative;
       color: #00ffe0;
       font-size: 14px;
     }
-
     #kry-search-bar input {
       flex: 1;
       padding: 4px 8px;
@@ -55,11 +46,9 @@
       font-size: 0.85rem;
       font-family: 'Orbitron', sans-serif;
     }
-
     #kry-search-bar input::placeholder {
       color: #004040;
     }
-
     #toggle-search {
       cursor: pointer;
       border: 1.5px solid #00ffe0;
@@ -69,9 +58,7 @@
       padding: 2px 8px;
       font-weight: 700;
       transition: background 0.25s ease, color 0.25s ease;
-      user-select: none;
     }
-
     #toggle-search:hover {
       background: #00ffe0;
       color: #0a0a0a;
@@ -85,16 +72,6 @@
       margin: 0 auto;
       width: 100%;
     }
-
-    h1 {
-      margin: 0 0 24px 0;
-      font-weight: 900;
-      font-size: 2rem;
-      color: #00ffe0;
-      text-shadow: 0 0 10px #00ffe0bb;
-      user-select: none;
-    }
-
     .message {
       margin: 12px 0;
       padding: 16px 20px;
@@ -104,18 +81,23 @@
       line-height: 1.35;
       box-shadow: 0 0 6px #00808088 inset;
     }
-
     .message:hover {
       background: #333;
       box-shadow: 0 0 10px #00ffe0 inset;
     }
-
     .message a {
       color: #00ffe0;
       text-decoration: underline;
     }
+    h1 {
+      margin: 0 0 24px 0;
+      font-weight: 900;
+      font-size: 2rem;
+      color: #00ffe0;
+      text-shadow: 0 0 10px #00ffe0bb;
+      user-select: none;
+    }
 
-    /* Scrollbar */
     main::-webkit-scrollbar {
       width: 8px;
     }
@@ -139,60 +121,83 @@
         placeholder="KrySearch V3..."
         autocomplete="off"
         spellcheck="false"
-        oninput="this.value = this.value.replace(/[<>\"']/g, '')"
       />
+      <div id="toggle-search" title="Toggle Search Bar">ON</div>
     </div>
-    <div id="toggle-search" title="Toggle Search Bar">ON</div>
   </header>
 
   <main>
     <h1>Social Feed</h1>
 
     <div class="message">
-      <strong>User1:</strong> Safe link — 
+      <strong>User1:</strong> Safe link —
       <a href="https://arza.tech">https://arza.tech</a>
     </div>
 
     <div class="message">
-      <strong>User2:</strong> Malicious test — 
+      <strong>User2:</strong> Malicious test —
       <a href="https://malware.testing.google.test/testing/malware/">malware test link</a>
     </div>
 
     <div class="message">
-      <strong>User3:</strong> Neutral site — 
+      <strong>User3:</strong> Neutral site —
       <a href="https://example.com">example.com</a>
     </div>
 
     <div class="message">
-      <strong>User4:</strong> Trusted — 
+      <strong>User4:</strong> Trusted —
       <a href="https://deadlanterngames.com">deadlanterngames.com</a>
     </div>
   </main>
 
-  <!-- Load KrySearch runtime -->
-  <script type="module" src="./krysearch.app.js"></script>
+  <script type="module">
+    import './privacyfilters.js';
+    import './smartDns.js';
+    import './ublockEngine.js';
+    import './utils.js';
+    import './proxyClient.js';
+    import './privacyCleaner.js';
+    import './fingerprintSpoofer.js';
+    import './openSourceAI.js';
+    import { installKrySearchPlugin } from './krysearch.js';
+    import './krysearch-bindings.js';
 
-  <script>
     const toggleBtn = document.getElementById('toggle-search');
     const searchBar = document.getElementById('kry-search-bar');
     const searchInput = document.getElementById('kry-search-input');
 
-    // Toggle logic
-    toggleBtn.addEventListener('click', () => {
-      const isHidden = searchBar.classList.toggle('hidden');
-      toggleBtn.textContent = isHidden ? 'OFF' : 'ON';
-      if (!isHidden) searchInput.focus();
+    function safeAddEvent(el, evt, handler) {
+      if (!el) return;
+      el.addEventListener(evt, handler);
+    }
+
+    safeAddEvent(toggleBtn, 'click', () => {
+      const hidden = searchBar.classList.toggle('hidden');
+      searchBar.style.display = hidden ? 'none' : 'flex';
+      toggleBtn.textContent = hidden ? 'OFF' : 'ON';
+      if (!hidden) searchInput.focus();
     });
 
-    // Enter key triggers KrySearch event
-    searchInput.addEventListener('keydown', (e) => {
+    safeAddEvent(searchInput, 'keydown', (e) => {
       if (e.key === 'Enter' && searchInput.value.trim()) {
         const q = encodeURIComponent(searchInput.value.trim());
-        window.dispatchEvent(new CustomEvent("krysearch-query", {
-          detail: q
-        }));
+        window.dispatchEvent(new CustomEvent('krysearch-query', { detail: q }));
       }
     });
+
+    document.querySelectorAll('.message a').forEach(a => a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const href = a.href;
+      window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: href } }));
+    }));
+
+    (async () => {
+      try {
+        await installKrySearchPlugin();
+      } catch (e) {
+        console.error('Failed to init KrySearch', e);
+      }
+    })();
   </script>
 </body>
 </html>
