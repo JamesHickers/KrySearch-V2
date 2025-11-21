@@ -1,5 +1,6 @@
-// Simple AI DNS resolver (stub, replace with actual open-source AI DNS if needed)
-export async function aiDnsResolve(domain) {
+// smartDns.js — Simple AI DNS resolver (stub)
+
+async function aiDnsResolve(domain) {
   try {
     // Example: Using a public DoH endpoint (Cloudflare) as a free resolver
     const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=A`, {
@@ -12,3 +13,6 @@ export async function aiDnsResolve(domain) {
     return false;
   }
 }
+
+// expose globally
+window.aiDnsResolve = aiDnsResolve;
