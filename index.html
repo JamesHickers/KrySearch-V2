@@ -39,7 +39,9 @@
       font-size: 14px;
     }
 
-    #kry-search-bar.hidden { display: none !important; }
+    #kry-search-bar.hidden {
+      display: none !important;
+    }
 
     #kry-search-bar input {
       flex: 1;
@@ -49,9 +51,12 @@
       border-radius: 6px;
       color: white;
       font-size: 0.85rem;
+      font-family: 'Orbitron', sans-serif;
     }
 
-    #kry-search-bar input::placeholder { color: #004040; }
+    #kry-search-bar input::placeholder {
+      color: #004040;
+    }
 
     #toggle-search {
       cursor: pointer;
@@ -108,8 +113,14 @@
       user-select: none;
     }
 
-    main::-webkit-scrollbar { width: 8px; }
-    main::-webkit-scrollbar-track { background: #0a0a0a; }
+    main::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    main::-webkit-scrollbar-track {
+      background: #0a0a0a;
+    }
+
     main::-webkit-scrollbar-thumb {
       background-color: #00ffe0;
       border-radius: 10px;
@@ -120,7 +131,14 @@
 <body>
   <header>
     <div id="kry-search-bar">
-      <input type="text" id="kry-search-input" name="q" placeholder="KrySearch V2..." autocomplete="off" spellcheck="false"/>
+      <input
+        type="text"
+        id="kry-search-input"
+        name="q"
+        placeholder="KrySearch V2..."
+        autocomplete="off"
+        spellcheck="false"
+      />
       <div id="toggle-search" title="Toggle Search Bar">ON</div>
     </div>
   </header>
@@ -129,96 +147,97 @@
     <h1>Social Feed</h1>
 
     <div class="message">
-      <strong>User1:</strong> Safe link —
+      <strong>User1:</strong> Safe link — 
       <a href="https://arza.tech">https://arza.tech</a>
     </div>
 
     <div class="message">
-      <strong>User2:</strong> Malicious test —
+      <strong>User2:</strong> Malicious test — 
       <a href="https://malware.testing.google.test/testing/malware/">malware test link</a>
     </div>
 
     <div class="message">
-      <strong>User3:</strong> Neutral site —
+      <strong>User3:</strong> Neutral site — 
       <a href="https://example.com">example.com</a>
     </div>
 
     <div class="message">
-      <strong>User4:</strong> Trusted —
+      <strong>User4:</strong> Trusted — 
       <a href="https://deadlanterngames.com">deadlanterngames.com</a>
     </div>
   </main>
 
-  <!-- Load all KrySearch scripts as classic scripts -->
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/privacyfilters.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/smartDns.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/ublockEngine.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/utils.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/proxyClient.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/privacyCleaner.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/fingerprintSpoofer.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/openSourceAI.js"></script>
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/krysearch-bindings.js"></script>
+  <script type="module">
+    const baseURL = 'https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/';
 
-  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/krysearch.js"></script>
-  <script>
-    // Wait until KrySearch is loaded
-    function initKrySearch() {
-      if (typeof installKrySearchPlugin !== 'function') {
-        return setTimeout(initKrySearch, 100);
+    // Import KrySearch modules
+    import { installKrySearchPlugin } from baseURL + 'krysearch.js';
+    import { fullScan } from baseURL + 'krysearch-bindings.js';
+    import { aiScoreLink } from baseURL + 'openSourceAI.js';
+    import { matchesPrivacyFilters } from baseURL + 'PrivacyFilters.js';
+    import { aiDnsResolve } from baseURL + 'smartDns.js';
+    import { extractHostname } from baseURL + 'utils.js';
+
+    // Initialize KrySearch plugin
+    const KrySearch = await installKrySearchPlugin({
+      updateFilters: true,
+      enableUBlockFilters: true,
+      enableAdGuardFilters: true,
+      enablePrivacyFilters: true,
+      autoUpdateInterval: 3600
+    });
+    window.KrySearch = KrySearch;
+
+    // Search bar
+    const searchInput = document.getElementById("kry-search-input");
+    const toggleBtn = document.getElementById("toggle-search");
+    const searchBar = document.getElementById("kry-search-bar");
+
+    function dispatchKrySearchQuery(query) {
+      if (!query) return;
+      if (KrySearch && typeof KrySearch.dispatch === "function") {
+        KrySearch.dispatch("query", query);
+      } else {
+        window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
       }
-
-      const plugin = installKrySearchPlugin({
-        updateFilters: true,
-        enableUBlockFilters: true,
-        enableAdGuardFilters: true,
-        enablePrivacyFilters: true,
-        autoUpdateInterval: 3600
-      });
-
-      window.KrySearch = plugin;
-
-      // Search bar events
-      const searchInput = document.getElementById("kry-search-input");
-      const toggleBtn = document.getElementById("toggle-search");
-      const searchBar = document.getElementById("kry-search-bar");
-
-      function dispatchKrySearchQuery(rawQuery) {
-        const query = rawQuery.trim();
-        if (!query) return;
-
-        if (window.KrySearch && typeof window.KrySearch.dispatch === "function") {
-          window.KrySearch.dispatch("query", query);
-        } else {
-          window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
-        }
-      }
-
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") dispatchKrySearchQuery(searchInput.value);
-      });
-
-      toggleBtn.addEventListener("click", () => {
-        const hidden = searchBar.classList.toggle('hidden');
-        toggleBtn.textContent = hidden ? "OFF" : "ON";
-        if (!hidden) searchInput.focus();
-      });
-
-      // Message links — dispatch KrySearch event and open safely
-      document.querySelectorAll('.message a').forEach(a => {
-        a.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          const url = a.href;
-
-          window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url } }));
-
-          // Fallback open
-          window.open(url, '_blank', 'noopener,noreferrer');
-        });
-      });
     }
 
-    initKrySearch();
+    searchInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") dispatchKrySearchQuery(searchInput.value);
+    });
+
+    toggleBtn.addEventListener("click", () => {
+      const hidden = searchBar.classList.toggle("hidden");
+      toggleBtn.textContent = hidden ? "OFF" : "ON";
+      if (!hidden) searchInput.focus();
+    });
+
+    // Message links with full KrySearch safety
+    document.querySelectorAll('.message a').forEach(a => {
+      a.addEventListener('click', async e => {
+        e.preventDefault();
+        const url = a.href;
+        const host = extractHostname(url);
+
+        // AI DNS resolution
+        const resolved = await aiDnsResolve(host);
+
+        // Privacy filter check
+        const blocked = matchesPrivacyFilters(url) || matchesPrivacyFilters(host);
+
+        // AI & remote full scan
+        const unsafe = await fullScan(url, host);
+        const score = await aiScoreLink(url);
+
+        if (!resolved || blocked || unsafe || score > 50) {
+          alert("Blocked by KrySearch safety filters.");
+          return;
+        }
+
+        // Otherwise open safely
+        window.open(url, "_blank", "noopener,noreferrer");
+      });
+    });
   </script>
 </body>
 </html>
