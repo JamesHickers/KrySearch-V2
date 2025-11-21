@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Krynet.ai – Test Page (KrySearch V2)</title>
+  <title>Krynet.ai – Test Page (KrySearch V3)</title>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
@@ -39,9 +39,7 @@
       font-size: 14px;
     }
 
-    #kry-search-bar.hidden {
-      display: none !important;
-    }
+    #kry-search-bar.hidden { display: none !important; }
 
     #kry-search-bar input {
       flex: 1;
@@ -54,9 +52,7 @@
       font-family: 'Orbitron', sans-serif;
     }
 
-    #kry-search-bar input::placeholder {
-      color: #004040;
-    }
+    #kry-search-bar input::placeholder { color: #004040; }
 
     #toggle-search {
       cursor: pointer;
@@ -70,10 +66,7 @@
       user-select: none;
     }
 
-    #toggle-search:hover {
-      background: #00ffe0;
-      color: #0a0a0a;
-    }
+    #toggle-search:hover { background: #00ffe0; color: #0a0a0a; }
 
     main {
       flex: 1;
@@ -99,10 +92,7 @@
       box-shadow: 0 0 10px #00ffe0 inset;
     }
 
-    .message a {
-      color: #00ffe0;
-      text-decoration: underline;
-    }
+    .message a { color: #00ffe0; text-decoration: underline; }
 
     h1 {
       margin: 0 0 24px 0;
@@ -113,14 +103,8 @@
       user-select: none;
     }
 
-    main::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    main::-webkit-scrollbar-track {
-      background: #0a0a0a;
-    }
-
+    main::-webkit-scrollbar { width: 8px; }
+    main::-webkit-scrollbar-track { background: #0a0a0a; }
     main::-webkit-scrollbar-thumb {
       background-color: #00ffe0;
       border-radius: 10px;
@@ -135,7 +119,7 @@
         type="text"
         id="kry-search-input"
         name="q"
-        placeholder="KrySearch V2..."
+        placeholder="KrySearch V3..."
         autocomplete="off"
         spellcheck="false"
       />
@@ -145,100 +129,78 @@
 
   <main>
     <h1>Social Feed</h1>
-
     <div class="message">
       <strong>User1:</strong> Safe link —
       <a href="https://arza.tech">https://arza.tech</a>
     </div>
-
     <div class="message">
       <strong>User2:</strong> Malicious test —
       <a href="https://malware.testing.google.test/testing/malware/">malware test link</a>
     </div>
-
     <div class="message">
       <strong>User3:</strong> Neutral site —
       <a href="https://example.com">example.com</a>
     </div>
-
     <div class="message">
       <strong>User4:</strong> Trusted —
       <a href="https://deadlanterngames.com">deadlanterngames.com</a>
     </div>
   </main>
 
-  <script type="module">
-    // Import from raw GitHub URLs
-    const baseURL = 'https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/';
+  <!-- KrySearch Scripts -->
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/utils.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/privacyCleaner.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/proxyClient.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/fingerprintSpoofer.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/PrivacyFilters.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/openSourceAI.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/krysearch.js"></script>
+  <script src="https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/krysearch-bindings.js"></script>
 
-    import(baseURL + 'privacyfilters.js');
-    import(baseURL + 'smartDns.js');
-    import(baseURL + 'ublockEngine.js');
-    import(baseURL + 'utils.js');
-    import(baseURL + 'proxyClient.js');
-    import(baseURL + 'privacyCleaner.js');
-    import(baseURL + 'fingerprintSpoofer.js');
-    import(baseURL + 'openSourceAI.js');
-    import(baseURL + 'krysearch-bindings.js');
-
-    // For krysearch.js, which exports installKrySearchPlugin:
-    import(baseURL + 'krysearch.js')
-      .then(module => {
-        const { installKrySearchPlugin } = module;
-
-        // Initialize plugin after DOM
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (typeof installKrySearchPlugin === "function") {
         installKrySearchPlugin({
           updateFilters: true,
           enableUBlockFilters: true,
           enableAdGuardFilters: true,
           enablePrivacyFilters: true,
           autoUpdateInterval: 3600
-        }).then(plugin => {
-          window.KrySearch = plugin;
-        }).catch(err => {
-          console.error('KrySearch init error:', err);
-        });
+        }).then(plugin => window.KrySearch = plugin);
+      }
 
-        // Bind search events
-        const searchInput = document.getElementById("kry-search-input");
-        const toggleBtn = document.getElementById("toggle-search");
-        const searchBar = document.getElementById("kry-search-bar");
+      const searchInput = document.getElementById("kry-search-input");
+      const toggleBtn = document.getElementById("toggle-search");
+      const searchBar = document.getElementById("kry-search-bar");
 
-        function dispatchKrySearchQuery(rawQuery) {
-          const query = rawQuery.trim();
-          if (!query) return;
+      function dispatchKrySearchQuery(query) {
+        const q = query.trim();
+        if (!q) return;
 
-          if (window.KrySearch && typeof window.KrySearch.dispatch === "function") {
-            window.KrySearch.dispatch("query", query);
-          } else {
-            window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
-          }
+        if (window.KrySearch && typeof window.KrySearch.dispatch === "function") {
+          window.KrySearch.dispatch("query", q);
+        } else {
+          window.open(`https://duckduckgo.com/?q=${encodeURIComponent(q)}`, "_blank", "noopener,noreferrer");
         }
+      }
 
-        searchInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            dispatchKrySearchQuery(searchInput.value);
-          }
-        });
-
-        toggleBtn.addEventListener("click", () => {
-          const hidden = searchBar.classList.toggle('hidden');
-          toggleBtn.textContent = hidden ? "OFF" : "ON";
-          if (!hidden) searchInput.focus();
-        });
-
-        document.querySelectorAll('.message a').forEach(a => {
-          a.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: a.href } }));
-          });
-        });
-
-      })
-      .catch(err => {
-        console.error('Failed to load krysearch.js:', err);
+      searchInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") dispatchKrySearchQuery(searchInput.value);
       });
 
+      toggleBtn.addEventListener("click", () => {
+        const hidden = searchBar.classList.toggle("hidden");
+        toggleBtn.textContent = hidden ? "OFF" : "ON";
+        if (!hidden) searchInput.focus();
+      });
+
+      document.querySelectorAll('.message a').forEach(a => {
+        a.addEventListener('click', ev => {
+          ev.preventDefault();
+          window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: a.href } }));
+        });
+      });
+    });
   </script>
 </body>
 </html>
