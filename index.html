@@ -162,42 +162,50 @@
     import { installKrySearchPlugin } from './krysearch.js';
     import './krysearch-bindings.js';
 
-    const toggleBtn = document.getElementById('toggle-search');
-    const searchBar = document.getElementById('kry-search-bar');
-    const searchInput = document.getElementById('kry-search-input');
+    async function init() {
+      const toggleBtn = document.getElementById('toggle-search');
+      const searchBar = document.getElementById('kry-search-bar');
+      const searchInput = document.getElementById('kry-search-input');
 
-    function safeAddEvent(el, evt, handler) {
-      if (!el) return;
-      el.addEventListener(evt, handler);
-    }
-
-    safeAddEvent(toggleBtn, 'click', () => {
-      const hidden = searchBar.classList.toggle('hidden');
-      searchBar.style.display = hidden ? 'none' : 'flex';
-      toggleBtn.textContent = hidden ? 'OFF' : 'ON';
-      if (!hidden) searchInput.focus();
-    });
-
-    safeAddEvent(searchInput, 'keydown', (e) => {
-      if (e.key === 'Enter' && searchInput.value.trim()) {
-        const q = encodeURIComponent(searchInput.value.trim());
-        window.dispatchEvent(new CustomEvent('krysearch-query', { detail: q }));
+      function safeAddEvent(el, evt, handler) {
+        if (!el) return;
+        el.addEventListener(evt, handler);
       }
-    });
 
-    document.querySelectorAll('.message a').forEach(a => a.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      const href = a.href;
-      window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: href } }));
-    }));
+      safeAddEvent(toggleBtn, 'click', () => {
+        if (!searchBar) return;
+        const hidden = searchBar.classList.toggle('hidden');
+        searchBar.style.display = hidden ? 'none' : 'flex';
+        toggleBtn.textContent = hidden ? 'OFF' : 'ON';
+        if (!hidden && searchInput) searchInput.focus();
+      });
 
-    (async () => {
+      safeAddEvent(searchInput, 'keydown', (e) => {
+        if (e.key === 'Enter') {
+          const val = searchInput && searchInput.value ? searchInput.value.trim() : '';
+          if (!val) return;
+          window.dispatchEvent(new CustomEvent('krysearch-query', { detail: val }));
+        }
+      });
+
+      document.querySelectorAll('.message a').forEach(a => a.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const href = a.href;
+        window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: href } }));
+      }));
+
       try {
         await installKrySearchPlugin();
       } catch (e) {
         console.error('Failed to init KrySearch', e);
       }
-    })();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
