@@ -1,6 +1,6 @@
 // privacyCleaner.js — cookie cleaner + anti‑tracker
 
-export async function smartCleaner() {
+async function smartCleaner() {
   try {
     const cookies = document.cookie.split(';');
     for (const c of cookies) {
@@ -26,7 +26,7 @@ export async function smartCleaner() {
   } catch {}
 }
 
-export function installAntiTracker() {
+function installAntiTracker() {
   const originalFetch = window.fetch;
   window.fetch = function(input, init = {}) {
     let url = typeof input === 'string' ? input : input?.url || '';
@@ -67,3 +67,7 @@ function isTrackingUrl(url) {
     return false;
   }
 }
+
+// expose globally
+window.smartCleaner = smartCleaner;
+window.installAntiTracker = installAntiTracker;
