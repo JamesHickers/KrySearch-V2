@@ -39,7 +39,6 @@
       font-size: 14px;
     }
 
-    /* FIXED: hidden class actually hides the bar */
     #kry-search-bar.hidden {
       display: none !important;
     }
@@ -168,10 +167,11 @@
     </div>
   </main>
 
+  <!-- SCRIPT AT THE BOTTOM — THE FIX -->
   <script type="module">
-    /* Your actual modules — untouched */
     import './privacyfilters.js';
     import './smartDns.js';
+    import './ublockEngine.js';
     import './utils.js';
     import './proxyClient.js';
     import './privacyCleaner.js';
@@ -180,53 +180,49 @@
     import { installKrySearchPlugin } from './krysearch.js';
     import './krysearch-bindings.js';
 
+    function safeAddEvent(el, evt, handler) {
+      if (el) el.addEventListener(evt, handler);
+    }
+
     async function init() {
-      const toggleBtn = document.getElementById('toggle-search');
       const searchBar = document.getElementById('kry-search-bar');
       const searchInput = document.getElementById('kry-search-input');
+      const toggleBtn = document.getElementById('toggle-search');
 
-      const safeAdd = (el, evt, fn) => el && el.addEventListener(evt, fn);
-
-      /* SEARCH TOGGLE — FIXED */
-      safeAdd(toggleBtn, 'click', () => {
+      // Toggle Search
+      safeAddEvent(toggleBtn, 'click', () => {
         const hidden = searchBar.classList.toggle('hidden');
         toggleBtn.textContent = hidden ? 'OFF' : 'ON';
         if (!hidden) searchInput.focus();
       });
 
-      /* ENTER TO SEARCH */
-      safeAdd(searchInput, 'keydown', e => {
+      // Enter to Search
+      safeAddEvent(searchInput, 'keydown', (e) => {
         if (e.key === 'Enter') {
           const val = searchInput.value.trim();
-          if (val) {
-            window.dispatchEvent(
-              new CustomEvent('krysearch-query', { detail: val })
-            );
-          }
+          if (!val) return;
+          window.dispatchEvent(new CustomEvent('krysearch-query', { detail: val }));
         }
       });
 
-      /* LINK SAFETY HOOK */
+      // Safe Click Intercept
       document.querySelectorAll('.message a').forEach(a =>
         a.addEventListener('click', ev => {
           ev.preventDefault();
-          window.dispatchEvent(
-            new CustomEvent('krysearch-safeclick', { detail: { url: a.href } })
-          );
+          window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: a.href } }));
         })
       );
 
-      /* INIT PLUGIN */
+      // Plugin Loader
       try {
         await installKrySearchPlugin();
       } catch (err) {
-        console.error('KrySearch init failed:', err);
+        console.error('Failed to init KrySearch plugin:', err);
       }
     }
 
-    document.readyState === 'loading'
-      ? document.addEventListener('DOMContentLoaded', init)
-      : init();
+    // Always run after DOM is fully loaded
+    init();
   </script>
 </body>
 </html>
