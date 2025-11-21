@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Krynet.ai – Test Page (KrySearch V3)</title>
+  <title>Krynet.ai – Test Page (KrySearch V2)</title>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
@@ -135,7 +135,7 @@
         type="text"
         id="kry-search-input"
         name="q"
-        placeholder="KrySearch V3..."
+        placeholder="KrySearch V2..."
         autocomplete="off"
         spellcheck="false"
       />
@@ -167,61 +167,78 @@
     </div>
   </main>
 
-  <!-- SCRIPT AT THE BOTTOM — THE FIX -->
   <script type="module">
-    import './privacyfilters.js';
-    import './smartDns.js';
-    import './utils.js';
-    import './proxyClient.js';
-    import './privacyCleaner.js';
-    import './fingerprintSpoofer.js';
-    import './openSourceAI.js';
-    import { installKrySearchPlugin } from './krysearch.js';
-    import './krysearch-bindings.js';
+    // Import from raw GitHub URLs
+    const baseURL = 'https://raw.githubusercontent.com/JamesHickers/KrySearch-V2/main/';
 
-    function safeAddEvent(el, evt, handler) {
-      if (el) el.addEventListener(evt, handler);
-    }
+    import(baseURL + 'privacyfilters.js');
+    import(baseURL + 'smartDns.js');
+    import(baseURL + 'ublockEngine.js');
+    import(baseURL + 'utils.js');
+    import(baseURL + 'proxyClient.js');
+    import(baseURL + 'privacyCleaner.js');
+    import(baseURL + 'fingerprintSpoofer.js');
+    import(baseURL + 'openSourceAI.js');
+    import(baseURL + 'krysearch-bindings.js');
 
-    async function init() {
-      const searchBar = document.getElementById('kry-search-bar');
-      const searchInput = document.getElementById('kry-search-input');
-      const toggleBtn = document.getElementById('toggle-search');
+    // For krysearch.js, which exports installKrySearchPlugin:
+    import(baseURL + 'krysearch.js')
+      .then(module => {
+        const { installKrySearchPlugin } = module;
 
-      // Toggle Search
-      safeAddEvent(toggleBtn, 'click', () => {
-        const hidden = searchBar.classList.toggle('hidden');
-        toggleBtn.textContent = hidden ? 'OFF' : 'ON';
-        if (!hidden) searchInput.focus();
-      });
+        // Initialize plugin after DOM
+        installKrySearchPlugin({
+          updateFilters: true,
+          enableUBlockFilters: true,
+          enableAdGuardFilters: true,
+          enablePrivacyFilters: true,
+          autoUpdateInterval: 3600
+        }).then(plugin => {
+          window.KrySearch = plugin;
+        }).catch(err => {
+          console.error('KrySearch init error:', err);
+        });
 
-      // Enter to Search
-      safeAddEvent(searchInput, 'keydown', (e) => {
-        if (e.key === 'Enter') {
-          const val = searchInput.value.trim();
-          if (!val) return;
-          window.dispatchEvent(new CustomEvent('krysearch-query', { detail: val }));
+        // Bind search events
+        const searchInput = document.getElementById("kry-search-input");
+        const toggleBtn = document.getElementById("toggle-search");
+        const searchBar = document.getElementById("kry-search-bar");
+
+        function dispatchKrySearchQuery(rawQuery) {
+          const query = rawQuery.trim();
+          if (!query) return;
+
+          if (window.KrySearch && typeof window.KrySearch.dispatch === "function") {
+            window.KrySearch.dispatch("query", query);
+          } else {
+            window.open(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`, "_blank", "noopener,noreferrer");
+          }
         }
+
+        searchInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            dispatchKrySearchQuery(searchInput.value);
+          }
+        });
+
+        toggleBtn.addEventListener("click", () => {
+          const hidden = searchBar.classList.toggle('hidden');
+          toggleBtn.textContent = hidden ? "OFF" : "ON";
+          if (!hidden) searchInput.focus();
+        });
+
+        document.querySelectorAll('.message a').forEach(a => {
+          a.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: a.href } }));
+          });
+        });
+
+      })
+      .catch(err => {
+        console.error('Failed to load krysearch.js:', err);
       });
 
-      // Safe Click Intercept
-      document.querySelectorAll('.message a').forEach(a =>
-        a.addEventListener('click', ev => {
-          ev.preventDefault();
-          window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: a.href } }));
-        })
-      );
-
-      // Plugin Loader
-      try {
-        await installKrySearchPlugin();
-      } catch (err) {
-        console.error('Failed to init KrySearch plugin:', err);
-      }
-    }
-
-    // Always run after DOM is fully loaded
-    init();
   </script>
 </body>
 </html>
