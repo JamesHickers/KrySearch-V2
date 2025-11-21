@@ -1,21 +1,19 @@
 // openSourceAI.js — Local-only open-source AI utilities
 
-import { pipeline } from "@xenova/transformers";
-
-// Load once, reuse forever
+// assumes pipeline is already available globally (via CDN)
 let summarizer = null;
 let classifier = null;
 
 async function loadModels() {
   if (!summarizer) {
-    summarizer = await pipeline("summarization", "Xenova/distilbart-cnn-6-6");
+    summarizer = await window.pipeline("summarization", "Xenova/distilbart-cnn-6-6");
   }
   if (!classifier) {
-    classifier = await pipeline("text-classification", "Xenova/distilbert-base-uncased");
+    classifier = await window.pipeline("text-classification", "Xenova/distilbert-base-uncased");
   }
 }
 
-export async function generateSummary(text = "") {
+async function generateSummary(text = "") {
   await loadModels();
 
   if (!text || text.trim().length < 10) return "No summary available.";
@@ -28,7 +26,7 @@ export async function generateSummary(text = "") {
   }
 }
 
-export async function scoreLinkRisk(text = "") {
+async function scoreLinkRisk(text = "") {
   await loadModels();
 
   try {
@@ -39,3 +37,7 @@ export async function scoreLinkRisk(text = "") {
     return 0;
   }
 }
+
+// expose globally
+window.generateSummary = generateSummary;
+window.scoreLinkRisk = scoreLinkRisk;
