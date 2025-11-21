@@ -18,6 +18,7 @@
       height: 100vh;
       overflow: hidden;
     }
+
     header {
       background: #111;
       padding: 8px 16px;
@@ -27,6 +28,7 @@
       border-bottom: 1px solid #00ffe0;
       user-select: none;
     }
+
     #kry-search-bar {
       display: flex;
       align-items: center;
@@ -36,6 +38,12 @@
       color: #00ffe0;
       font-size: 14px;
     }
+
+    /* FIXED: hidden class actually hides the bar */
+    #kry-search-bar.hidden {
+      display: none !important;
+    }
+
     #kry-search-bar input {
       flex: 1;
       padding: 4px 8px;
@@ -46,9 +54,11 @@
       font-size: 0.85rem;
       font-family: 'Orbitron', sans-serif;
     }
+
     #kry-search-bar input::placeholder {
       color: #004040;
     }
+
     #toggle-search {
       cursor: pointer;
       border: 1.5px solid #00ffe0;
@@ -58,7 +68,9 @@
       padding: 2px 8px;
       font-weight: 700;
       transition: background 0.25s ease, color 0.25s ease;
+      user-select: none;
     }
+
     #toggle-search:hover {
       background: #00ffe0;
       color: #0a0a0a;
@@ -72,6 +84,7 @@
       margin: 0 auto;
       width: 100%;
     }
+
     .message {
       margin: 12px 0;
       padding: 16px 20px;
@@ -81,14 +94,17 @@
       line-height: 1.35;
       box-shadow: 0 0 6px #00808088 inset;
     }
+
     .message:hover {
       background: #333;
       box-shadow: 0 0 10px #00ffe0 inset;
     }
+
     .message a {
       color: #00ffe0;
       text-decoration: underline;
     }
+
     h1 {
       margin: 0 0 24px 0;
       font-weight: 900;
@@ -101,9 +117,11 @@
     main::-webkit-scrollbar {
       width: 8px;
     }
+
     main::-webkit-scrollbar-track {
       background: #0a0a0a;
     }
+
     main::-webkit-scrollbar-thumb {
       background-color: #00ffe0;
       border-radius: 10px;
@@ -151,6 +169,7 @@
   </main>
 
   <script type="module">
+    /* Your actual modules — untouched */
     import './privacyfilters.js';
     import './smartDns.js';
     import './ublockEngine.js';
@@ -167,45 +186,48 @@
       const searchBar = document.getElementById('kry-search-bar');
       const searchInput = document.getElementById('kry-search-input');
 
-      function safeAddEvent(el, evt, handler) {
-        if (!el) return;
-        el.addEventListener(evt, handler);
-      }
+      const safeAdd = (el, evt, fn) => el && el.addEventListener(evt, fn);
 
-      safeAddEvent(toggleBtn, 'click', () => {
-        if (!searchBar) return;
+      /* SEARCH TOGGLE — FIXED */
+      safeAdd(toggleBtn, 'click', () => {
         const hidden = searchBar.classList.toggle('hidden');
-        searchBar.style.display = hidden ? 'none' : 'flex';
         toggleBtn.textContent = hidden ? 'OFF' : 'ON';
-        if (!hidden && searchInput) searchInput.focus();
+        if (!hidden) searchInput.focus();
       });
 
-      safeAddEvent(searchInput, 'keydown', (e) => {
+      /* ENTER TO SEARCH */
+      safeAdd(searchInput, 'keydown', e => {
         if (e.key === 'Enter') {
-          const val = searchInput && searchInput.value ? searchInput.value.trim() : '';
-          if (!val) return;
-          window.dispatchEvent(new CustomEvent('krysearch-query', { detail: val }));
+          const val = searchInput.value.trim();
+          if (val) {
+            window.dispatchEvent(
+              new CustomEvent('krysearch-query', { detail: val })
+            );
+          }
         }
       });
 
-      document.querySelectorAll('.message a').forEach(a => a.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        const href = a.href;
-        window.dispatchEvent(new CustomEvent('krysearch-safeclick', { detail: { url: href } }));
-      }));
+      /* LINK SAFETY HOOK */
+      document.querySelectorAll('.message a').forEach(a =>
+        a.addEventListener('click', ev => {
+          ev.preventDefault();
+          window.dispatchEvent(
+            new CustomEvent('krysearch-safeclick', { detail: { url: a.href } })
+          );
+        })
+      );
 
+      /* INIT PLUGIN */
       try {
         await installKrySearchPlugin();
-      } catch (e) {
-        console.error('Failed to init KrySearch', e);
+      } catch (err) {
+        console.error('KrySearch init failed:', err);
       }
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    document.readyState === 'loading'
+      ? document.addEventListener('DOMContentLoaded', init)
+      : init();
   </script>
 </body>
 </html>
